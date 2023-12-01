@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <title>Roomba Map Viewer</title>
+</head>
+
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f1f1f1;
+    }
+
+    #main {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        background: #ffffff;
+    }
+
+    #main.full-width {
+        justify-content: flex-start;
+        align-items: flex-start;
+        width: 100%;
+        height: 100vh;
+        padding: 0;
+    }
+
+    #map-view {
+        display: none;
+        text-align: left;
+        /* Align the button to the left */
+        margin-top: 20px;
+    }
+
+    #get-map {
+        background-color: black;
+        border: none;
+        color: white;
+        /* White text color */
+        padding: 6px 12px;
+        /* Smaller padding to make the button smaller */
+        text-align: center;
+        /* Centered text */
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        /* Slightly smaller font size */
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        /* Rounded corners */
+        transition-duration: 0.4s;
+        /* Transition effect */
+    }
+
+    #map-view,
+    #map-container,
+    #details {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    h1,
+    h2 {
+        color: #007BFF;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        margin-bottom: 20px;
+    }
+
+    label {
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    button[type="submit"] {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+
+    button[type="submit"] {
+        background-color: #007BFF;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    .table-responsive {
+        max-width: 100% !important;
+        overflow-x: auto;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+
+    #map-view,
+    #details {
+        margin-top: 20px;
+    }
+
+    #map-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .map-btn {
+        background-color: black;
+        border: none;
+        color: white;
+        /* White text color */
+        padding: 6px 12px;
+        /* Smaller padding to make the button smaller */
+        text-align: center;
+        /* Centered text */
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        /* Slightly smaller font size */
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        /* Rounded corners */
+        transition-duration: 0.4s;
+        /* Transition effect */
+        flex-grow: 1;
+        text-align: center;
+        margin: 5px;
+    }
+
+    .map-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .map-btn.active {
+        background-color:  #0056b3;
+    }
+
+    #content-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    #map-container {
+        flex: 1 1 40%;
+        max-width: 40%;
+        margin-right: 10px;
+    }
+
+    /* .table-responsive {
+        flex: 1 1 40%;
+        max-width: 40%;
+        margin-left: 10px;
+    } */
+
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 16px;
+        background-color: white;
+        text-align: center;
+    }
+
+    .modal-text {
+        color: black;
+    }
+
+    #details table {
+        font-size: 24px; /* Adjust this value according to your preference */
+    }
+
+
+    @media screen and (max-width: 800px) {
+
+        #map-container,
+        .table-responsive {
+            flex: 1 0 100%;
+            max-width: 100%;
+        }
+    }
+
+
+    @media (max-width: 768px) {
+        .map-btn {
+            flex-basis: 100%;
+            margin-bottom: 10px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #main {
+            padding: 10px;
+        }
+
+        h1,
+        h2 {
+            font-size: 24px;
+        }
+
+        form {
+            max-width: 100%;
+        }
+
+        .table-responsive {
+            padding: 10px;
+        }
+
+        td {
+            padding: 5px;
+        }
+    }
+</style>
+
+<body>
+    <div id="main">
+        <h1 style="text-align: center;">PyRoomba</h1>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password">
+            <button type="submit">Log in</button>
+        </form>
+        <div id="map-view" style="display:none;">
+            <div id="map-buttons">
+                <button class="map-btn" id="get-map">Distinct Map</button>
+                <button class="map-btn" id="get-info">Robot Info</button>
+                <button class="map-btn" id="get-mission">Mission History</button>
+                <button class="map-btn" id="get-time-estimation">Account Information</button>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <div id="map-container">
+                <img id="map-image" src="" alt="Map Image" style="display: none;">
+            </div>
+        </div>
+
+        <div class="table-responsive" id="details" style="padding: 20px;display: none;">
+            <h2 id="header_detail"style="text-align: center;">Map Details</h2>
+            <table style="width:100%; border: 1px solid black;">
+                <tr>
+                </tr>
+                <tr>
+                    <td id="mission"> Mission No.</td>
+                    <td id="mission_id"></td>
+                </tr>
+                <tr>
+                    <td id="chrgs">Charged during Mission</td>
+                    <td id="chrgs_val"></td>
+                </tr>
+                <tr>
+                    <td id="dirt">Dirt Detected</td>
+                    <td id="dirts"></td>
+                </tr>
+
+                <tr>
+                    <td id="dock_start">Started from Dock</td>
+                    <td id="dockedAtStart_val"></td>
+                </tr>
+        
+                <tr>
+                    <td id="done">Completed Task </td>
+                    <td id="done_val"></td>
+                </tr>
+               
+                <tr>
+                    <td id="durationM">Duration</td>
+                    <td id="durationM_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="start_time">Start Time</td>
+                    <td id="start_time_val"></td>
+                </tr>
+        
+                <tr>
+                    <td id="end_time">End Time</td>
+                    <td id="end_time_val"></td>
+                </tr>
+                <tr>
+                    <td id="evacs">Bin Cleaned</td>
+                    <td id="evacs_val"></td>
+                </tr>
+                <tr>
+                    <td id="initiator">Initiator</td>
+                    <td id="initiator_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="pauseM">Pause Time</td>
+                    <td id="pauseM_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="sqft">Area (sqft)</td>
+                    <td id="sqft_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="object">Object images Captured by Roomba</td>
+                    <td id="detected_obj"></td>
+                </tr>
+
+                <tr>
+                    <td id="image_folder">Image Folder Link </td>
+                    <td id="image_folder_link"></td>
+                </tr>
+
+               
+
+            </table>
+        </div>
+
+      
+
+
+        <div id="info-container" style="display: none;">
+            <table id="info-table" style="width:100%; border: 1px solid black;">
+                <tr>
+                </tr>
+                <tr>
+                    <td>robot_name</td>
+                    <td id="robot_name"></td>
+                </tr>
+                <tr>
+                    <td>robot_id</td>
+                    <td id="robot_id"></td>
+                </tr>
+                <tr>
+                    <td>robot_password</td>
+                    <td id="robot_password"></td>
+                </tr>
+                <tr>
+                    <td>robot_sku</td>
+                    <td id="robot_sku"></td>
+                </tr>
+                <tr>
+                    <td>robot_certificate</td>
+                    <td id="robot_certificate"></td>
+                </tr>
+                <tr>
+                    <td>robot_sw_version</td>
+                    <td id="robot_sw_version"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="mission-container" style="display: none;">
+            <table id="mission-table" style="width:100%; border: 1px solid black;">
+            </table>
+        </div>
+
+        <div id="waiting-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-text">Loading...</span>
+            </div>
+        </div>
+
+
+        <table id="map_est_tbl" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Robot ID</th>
+                    <th>Map ID</th>
+                    <th>Region ID</th>
+                    <th>Time Estimate (seconds)</th>
+                    <th>Confidence</th>
+                    <th>Params</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+
+
+
+    </div>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (response.ok) {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('map-view').style.display = 'block';
+                document.getElementById('main').classList.add('full-width');
+            } else {
+                alert('Login failed. Please check your credentials and try again.');
+            }
+
+            if (response.ok) {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('map-view').style.display = 'block';
+            } else {
+                alert('Login failed. Please check your credentials and try again.');
+            }
+        });
+
+    document.getElementById('get-mission').addEventListener('click', async () => {
+
+
+            const mapContainer = document.getElementById('map-container');
+            const mapImage = document.getElementById('map-image');
+
+            const info_mission = await fetch('/mission_history');
+            const infoMission = await info_mission.json();
+            console.log(infoMission);
+            document.getElementById('mission-container').style.display = 'block';
+            const table = document.getElementById('mission-table');
+            let thead = table.querySelector('thead');
+            if (!thead) {
+                thead = table.createTHead();
+            }
+            let headerRow = thead.insertRow();
+            let missionNumberHeader = headerRow.insertCell();
+            let missionIdHeader = headerRow.insertCell();
+            let missionTimeHeader = headerRow.insertCell();
+
+            missionNumberHeader.innerHTML = "Mission Number";
+            missionIdHeader.innerHTML = "Mission ID";
+            missionTimeHeader.innerHTML = "Mission Time";
+
+            for (let i = 0; i < infoMission.mission_id.length; i++) {
+
+                let row = table.insertRow();
+                let missionIdCell = row.insertCell(0);
+                let countCell = row.insertCell(1);
+                let timeCell = row.insertCell(2);
+
+                missionIdCell.addEventListener('click', async function () {
+                    let missionId = this.innerHTML; // or this.textContent
+                    alert('You clicked on Mission ID: ' + missionId);
+
+
+                    const response = await fetch('/mission_details', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mission_id: missionId
+                        })
+                    });
+
+                    const data = await response.json();
+                    robotID = data.robotId;
+                    pmapID = data.pmap_id;
+                    pmapv = data.pmapv;
+                    pmaps_robot = data.pmaps_robot;
+                    pmaps_start_time = data.start_time;
+                    pmaps_end_time = data.end_time
+                    dirt_val = data.dirt;
+                    dock_start = data.dockedAtStart;
+                    done_job = data.done;
+
+                    // Mission Details Table
+
+                    document.getElementById('details').style.display = 'block';
+                    const header_detail = document.getElementById('header_detail');
+                    header_detail.textContent = 'Mission Details';
+                    document.getElementById('mission_id').textContent =missionId
+                    document.getElementById('chrgs_val').textContent = data.chrgs;
+                    document.getElementById('dirts').textContent = dirt_val;
+                    document.getElementById('dockedAtStart_val').textContent = dock_start;
+                    document.getElementById('done_val').textContent = done_job;
+                    document.getElementById('durationM_val').textContent = data.durationM;
+                    document.getElementById('start_time_val').textContent = data.start_time;
+                    document.getElementById('end_time_val').textContent = data.end_time;
+                    document.getElementById('evacs_val').textContent = data.evacs;
+                    document.getElementById('initiator_val').textContent = data.initiator;
+                    document.getElementById('pauseM_val').textContent = data.pauseM;
+                    document.getElementById('sqft_val').textContent = data.sqft;
+                   
+
+
+                try{
+                    const response2 = await fetch('/object_detection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mission_id: missionId
+                        })
+                    });
+                    const data2 = await response2.json();
+
+                    console.log("OBJECT_DETECTION==>",data2);
+                    console.log("Data type of data2:", typeof data2);
+                    console.log("Is data2 an array?", Array.isArray(data2));
+                    document.getElementById('detected_obj').textContent = processCounts(data2); 
+                function processCounts(items) {
+                // Count the items
+                const counts = items.reduce((acc, item) => {
+                acc[item] = (acc[item] || 0) + 1;
+                return acc;
+                }, {});
+                // Format the counts
+                let formattedString = '';
+                for (const [item, count] of Object.entries(counts)) {
+                formattedString += `${item}: ${count}, `;
+                }
+                // Return the formatted string without the trailing comma and space
+                return formattedString.slice(0, -2);
+                }
+
+
+
+
+                }catch (error) {
+                  console.error("Error fetching image link:", error);
+                } 
+                
+                try {    
+                    const response3 = await fetch('/image_link', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mission_id: missionId
+                        })
+                    });
+                    const data3 = await response3.json();
+                    console.log("IMAGE_URL==>",data3);
+                    const imageUrl = data3.images_url;
+                  
+                } catch (error) {
+                  console.error("Error fetching image link:", error);
+                } 
+
+
+               
+                  
+
+                    const mapContainer = document.getElementById('map-container');
+                    const mapImage = document.getElementById('map-image');
+
+                    const mapResponse3 = await fetch(`/view_map/${robotID}/${pmapID}/${pmapv}`);
+                    document.getElementById('map-image').style.display = 'block';
+                            const blob = await mapResponse3.blob(); // assuming the server returns a blob
+                            let blobUrl = URL.createObjectURL(blob);
+                            const img = document.getElementById('map-image');
+                            img.src = blobUrl;
+                            img.style.display = 'block';
+
+                    // if (imageUrl) {
+                    //     document.getElementById('image_folder_link').innerHTML = `<a href="${imageUrl}" target="_blank">Click here to download Image Folder</a>`;
+                    //     } else {
+                    //     document.getElementById('image_folder_link').textContent = 'Image URL not available';
+                    //     }
+
+                    document.getElementById('image_folder_link').innerHTML = `<a href="${imageUrl}" target="_blank">Click here to downlaod Image Folder</a>`;
+
+                    // document.getElementById('detected_obj').textContent = processCounts(data2);
+
+                });
+
+            
+                let missionData = infoMission.mission_id[i];
+                missionIdCell.innerHTML = missionData[0];
+                countCell.innerHTML = missionData[1];
+                timeCell.innerHTML = missionData[2];
+
+            }
+       //mapContainer.insertBefore(table, mapImage); 
+        });
+
+
+
+
+    document.getElementById('get-map').addEventListener('click', async () => {
+         
+         const modal = document.getElementById('waiting-modal');
+         modal.style.display = 'block';
+         try{
+             const mapContainer = document.getElementById('map-container');
+             const mapImage = document.getElementById('map-image');
+             const response = await fetch('/maps');
+             const mapsData = await response.json();
+         
+             const robotID = mapsData[0].robot_id;
+             let allMaps = mapsData.map(item => item.map);
+             let table = document.getElementById('data-table') || document.createElement('table');
+             table.id = 'data-table';
+             table.innerHTML = '';
+             for (let i = 0; i < allMaps.length; i++) {
+                 let row = document.createElement('tr');
+                 console.log(row);
+                 for (let j = 0; j < allMaps[i].length; j++) {
+                     let cell = document.createElement('td');
+                     let cellText = document.createElement('a');
+                     cellText.href = "#";
+                     cellText.textContent = allMaps[i][j];
+                     cellText.dataset.i = i;
+                     cellText.dataset.j = j;
+                     cell.appendChild(cellText);
+                     row.appendChild(cell);
+                 } 
+                 row.addEventListener('click', function (e) {
+                     alert("mapDetails Clicked");
+                 setTimeout(() => {
+                     let rowIndex = e.target.dataset.i;
+                     let rowData = allMaps[rowIndex];
+                     console.log("rowData",rowData);
+                     console.log(`Row values for row ${rowIndex}: ${rowData.join(', ')}`);
+                     async function fetchData() {
+                         const pmapID = rowData[0];
+                         const pmapv = rowData[1];
+                         console.log("pmadId==>", pmapID);
+                         console.log("pmapv==>",pmapv);
+                         console.log("robotID==>",robotID)
+
+
+                         const mapResponse = await fetch(`/view_map/${robotID}/${pmapID}/${pmapv}`);
+                         document.getElementById('map-image').style.display = 'block';
+                         const blob = await mapResponse.blob(); // assuming the server returns a blob
+                         let blobUrl = URL.createObjectURL(blob);
+                         const img = document.getElementById('map-image');
+                         img.src = blobUrl;
+                         img.style.display = 'block';
+
+
+
+
+
+
+                         const mapResponse2 = await fetch(`/view_map_brief/${robotID}/${pmapID}/${pmapv}`);
+                         console.log("mapResponse2==>",mapResponse2);
+                         if (mapResponse2.ok) {
+                             const data = await mapResponse2.json();
+                             console.log("dataforDistinctMap==",data);
+                             const map_name = data.map_name;
+                             document.getElementById('details').style.display = 'block';
+                             document.getElementById('mission').textContent = "Pmap Id";
+                             document.getElementById('chrgs').textContent = "Pmapv Id";
+                             document.getElementById('dirt').textContent = "Map Name";
+                             document.getElementById('dock_start').textContent = "Learning Percentage";
+                             document.getElementById('done').textContent = "Create Time";
+                             document.getElementById('durationM').textContent = "Resolution";
+                             document.getElementById('start_time').textContent = "User Orientation Rad";
+                             document.getElementById('evacs').textContent = "Robot Orientation Rad";
+                             document.getElementById('initiator').textContent = "Area (sq.ft)";
+                             document.getElementById('pauseM').textContent = "No of Mission";
+                             document.getElementById('sqft').textContent = "Mission Id";
+                             document.getElementById('mission_id').textContent = data.id;
+                             document.getElementById('chrgs_val').textContent = data.version;
+                             document.getElementById('dirts').textContent = data.map_name;
+                             document.getElementById('dockedAtStart_val').textContent = data.learning_percentage;
+                             document.getElementById('done_val').textContent = data.create_time;
+                             document.getElementById('durationM_val').textContent = data.resolution;
+                             document.getElementById('start_time_val').textContent = data.user_orientation_rad;
+                             document.getElementById('evacs_val').textContent = data.robot_orientation_rad;
+                             document.getElementById('initiator_val').textContent = data.area;
+                             document.getElementById('pauseM_val').textContent = data.nmssn;
+                             document.getElementById('sqft_val').textContent = data.mission_id;
+                            document.getElementById('pauseM').style.display = 'none';
+                            document.getElementById('sqft').style.display = 'none'; 
+                            document.getElementById('pauseM_val').style.display = 'none';
+                            document.getElementById('sqft_val').style.display = 'none'; 
+                            document.getElementById('end_time').style.display = 'none';
+                            document.getElementById('end_time_val').style.display = 'none';
+                            document.getElementById('object').style.display = 'none';
+                            document.getElementById('detected_obj').style.display = 'none';
+
+
+                         } else {
+                             console.error(`Error: ${mapResponse2.status}`);
+                         }
+                     }
+                     fetchData();
+
+                 });
+             });
+             
+
+                 table.appendChild(row);
+             } 
+             mapContainer.insertBefore(table, mapImage); 
+         
+         } catch (error) {
+             console.error(error);
+         } finally {
+             modal.style.display = 'none';
+         }
+
+     });
+
+
+    document.getElementById('get-info').addEventListener('click', async () => {
+
+        const info_response = await fetch('/info');
+        const infoData = await info_response.json();
+        const robot_id = infoData.robot_id;
+        document.getElementById('info-container').style.display = 'block';
+        const table = document.getElementById('info-table');
+        const row = table.insertRow(-1);
+        document.getElementById('robot_id').textContent = infoData.robot_id;
+        document.getElementById('robot_password').textContent = infoData.robot_password;
+        document.getElementById('robot_sku').textContent = infoData.sku;
+        document.getElementById('robot_certificate').textContent = infoData.user_cert;
+        document.getElementById('robot_sw_version').textContent = infoData.soft_version;
+        document.getElementById('robot_name').textContent = infoData.robot_name;
+
+});
+
+
+    document.getElementById('get-time-estimation').addEventListener('click', async () => {
+        const team_report = await fetch('/team_report');
+        const team_reportData = await team_report.json();
+        console.log("team_reportData==>",team_reportData)
+
+});
+
+    
+    const buttons = document.querySelectorAll('.map-btn');
+
+    buttons.forEach(button => {
+    button.addEventListener('click', () => {
+        button.classList.add('active');
+    });
+    });
+
+    buttons.forEach(button => {
+
+        button.addEventListener('click', () => {
+
+        button.classList.add('active');
+        
+        // Remove active class from siblings
+        button.parentElement.querySelectorAll('.active').forEach(elem => {
+            elem.classList.remove('active'); 
+        });
+        
+        });
+
+    });
+
+
+    </script>
+</body>
+
+</html>

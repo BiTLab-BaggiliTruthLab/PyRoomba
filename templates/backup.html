@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <title>Roomba Map Viewer</title>
+</head>
+
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f1f1f1;
+    }
+
+    #main {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        background: #ffffff;
+    }
+
+    #main.full-width {
+        justify-content: flex-start;
+        align-items: flex-start;
+        width: 100%;
+        height: 100vh;
+        padding: 0;
+    }
+
+    #map-view {
+        display: none;
+        text-align: left;
+        /* Align the button to the left */
+        margin-top: 20px;
+    }
+
+    #get-map {
+        background-color: black;
+        border: none;
+        color: white;
+        /* White text color */
+        padding: 6px 12px;
+        /* Smaller padding to make the button smaller */
+        text-align: center;
+        /* Centered text */
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        /* Slightly smaller font size */
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        /* Rounded corners */
+        transition-duration: 0.4s;
+        /* Transition effect */
+    }
+
+    #map-view,
+    #map-container,
+    #details {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    h1,
+    h2 {
+        color: #007BFF;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        margin-bottom: 20px;
+    }
+
+    label {
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    button[type="submit"] {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+
+    button[type="submit"] {
+        background-color: #007BFF;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+
+    #map-view,
+    #details {
+        margin-top: 20px;
+    }
+
+    #map-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .map-btn {
+        background-color: black;
+        border: none;
+        color: white;
+        /* White text color */
+        padding: 6px 12px;
+        /* Smaller padding to make the button smaller */
+        text-align: center;
+        /* Centered text */
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        /* Slightly smaller font size */
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        /* Rounded corners */
+        transition-duration: 0.4s;
+        /* Transition effect */
+        flex-grow: 1;
+        text-align: center;
+        margin: 5px;
+    }
+
+    .map-btn:hover {
+        background-color: #0056b3;
+    }
+
+    #content-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    #map-container {
+        flex: 1 1 40%;
+        max-width: 40%;
+        margin-right: 10px;
+    }
+
+    .table-responsive {
+        flex: 1 1 40%;
+        max-width: 40%;
+        margin-left: 10px;
+    }
+
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 16px;
+        background-color: white;
+        text-align: center;
+    }
+
+    .modal-text {
+        color: black;
+    }
+
+
+    @media screen and (max-width: 800px) {
+
+        #map-container,
+        .table-responsive {
+            flex: 1 0 100%;
+            max-width: 100%;
+        }
+    }
+
+
+    @media (max-width: 768px) {
+        .map-btn {
+            flex-basis: 100%;
+            margin-bottom: 10px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #main {
+            padding: 10px;
+        }
+
+        h1,
+        h2 {
+            font-size: 24px;
+        }
+
+        form {
+            max-width: 100%;
+        }
+
+        .table-responsive {
+            padding: 10px;
+        }
+
+        td {
+            padding: 5px;
+        }
+    }
+</style>
+
+<body>
+    <div id="main">
+        <h1 style="text-align: center;">PyRoomba</h1>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password">
+            <button type="submit">Log in</button>
+        </form>
+        <div id="map-view" style="display:none;">
+            <div id="map-buttons">
+                <button class="map-btn" id="get-map">Distinct Map</button>
+                <button class="map-btn" id="get-info">Info</button>
+                <button class="map-btn" id="get-mission">Mission History</button>
+                <button class="map-btn" id="get-time-estimation">Map Time estimation</button>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <div id="map-container">
+                <img id="map-image" src="" alt="Map Image" style="display: none;">
+            </div>
+        </div>
+
+        <div class="table-responsive" id="details" style="background-color: #f9f9f9; padding: 20px;display: none;">
+            <h2 id="header_detail"style="text-align: center;">Map Details</h2>
+            <table style="width:100%; border: 1px solid black;">
+                <tr>
+                </tr>
+                <tr>
+                    <td id="mission"> Mission No.</td>
+                    <td id="mission_id"></td>
+                </tr>
+                <tr>
+                    <td id="chrgs">Charged during Mission</td>
+                    <td id="chrgs_val"></td>
+                </tr>
+                <tr>
+                    <td id="dirt">Dirt Detected</td>
+                    <td id="dirts"></td>
+                </tr>
+
+                <tr>
+                    <td id="dock_start">Started from Dock</td>
+                    <td id="dockedAtStart_val"></td>
+                </tr>
+        
+                <tr>
+                    <td id="done">Completed Task </td>
+                    <td id="done_val"></td>
+                </tr>
+               
+                <tr>
+                    <td id="durationM">Duration</td>
+                    <td id="durationM_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="start_time">Start Time</td>
+                    <td id="start_time_val"></td>
+                </tr>
+        
+                <tr>
+                    <td id="end_time">End Time</td>
+                    <td id="end_time_val"></td>
+                </tr>
+                <tr>
+                    <td id="evacs">Bin Cleaned</td>
+                    <td id="evacs_val"></td>
+                </tr>
+                <tr>
+                    <td id="initiator">Initiator</td>
+                    <td id="initiator_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="pauseM">Pause Time</td>
+                    <td id="pauseM_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="sqft">Area (sqft)</td>
+                    <td id="sqft_val"></td>
+                </tr>
+
+                <tr>
+                    <td id="object">Detected Object</td>
+                    <td id="detected_obj"></td>
+                </tr>
+
+                <tr>
+                    <td id="image_folder">Image Folder Link </td>
+                    <td id="image_folder_link"></td>
+                </tr>
+
+    
+
+            </table>
+        </div>
+
+
+        <div id="info-container" style="display: none;">
+            <table id="info-table" style="width:100%; border: 1px solid black;">
+                <tr>
+                </tr>
+                <tr>
+                    <td>robot_name</td>
+                    <td id="robot_name"></td>
+                </tr>
+                <tr>
+                    <td>robot_id</td>
+                    <td id="robot_id"></td>
+                </tr>
+                <tr>
+                    <td>robot_password</td>
+                    <td id="robot_password"></td>
+                </tr>
+                <tr>
+                    <td>robot_sku</td>
+                    <td id="robot_sku"></td>
+                </tr>
+                <tr>
+                    <td>robot_certificate</td>
+                    <td id="robot_certificate"></td>
+                </tr>
+                <tr>
+                    <td>robot_sw_version</td>
+                    <td id="robot_sw_version"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="mission-container" style="display: none;">
+            <table id="mission-table" style="width:100%; border: 1px solid black;">
+            </table>
+        </div>
+
+        <div id="waiting-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-text">Loading...</span>
+            </div>
+        </div>
+
+
+        <table id="map_est_tbl" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Robot ID</th>
+                    <th>Map ID</th>
+                    <th>Region ID</th>
+                    <th>Time Estimate (seconds)</th>
+                    <th>Confidence</th>
+                    <th>Params</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+
+
+
+    </div>
+</body>
+
+</html>

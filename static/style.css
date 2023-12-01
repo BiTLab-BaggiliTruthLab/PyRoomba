@@ -1,0 +1,171 @@
+body {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ min-height: 100vh;
+ background: #f1f1f1;
+}
+#main {
+ box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+ padding: 20px;
+ background: #ffffff;
+}
+#main.full-width {
+ justify-content: flex-start;
+ align-items: flex-start;
+ width: 100%;
+ height: 100vh;
+ padding: 0;
+}
+#map-view {
+ display: none;
+ text-align: left;  /* Align the button to the left */
+ margin-top: 20px;
+}
+#get-map {
+ background-color: black; 
+ border: none;
+ color: white; /* White text color */
+ padding: 6px 12px; /* Smaller padding to make the button smaller */
+ text-align: center; /* Centered text */
+ text-decoration: none;
+ display: inline-block;
+ font-size: 14px; /* Slightly smaller font size */
+ margin: 4px 2px;
+ cursor: pointer;
+ border-radius: 4px; /* Rounded corners */
+ transition-duration: 0.4s; /* Transition effect */
+}
+#map-view, #map-container, #details {
+ width: 100%;
+ box-sizing: border-box;
+}
+ 
+h1, h2 {
+ color: #007BFF;
+}
+form {
+ display: flex;
+ flex-direction: column;
+ width: 100%;
+ max-width: 400px;
+ margin-bottom: 20px;
+}
+label {
+ margin-bottom: 5px;
+}
+input[type="text"], input[type="password"], button[type="submit"] {
+ padding: 10px;
+ margin-bottom: 10px;
+ border-radius: 5px;
+ border: 1px solid #ddd;
+}
+button[type="submit"] {
+ background-color: #007BFF;
+ color: #fff;
+ cursor: pointer;
+}
+button[type="submit"]:hover {
+ background-color: #0056b3;
+}
+.table-responsive {
+ max-width: 100%;
+ overflow-x: auto;
+ background-color: #f9f9f9; 
+ padding: 20px; 
+ border-radius: 5px;
+ box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+table {
+ width: 100%;
+ border-collapse: collapse;
+}
+td {
+ padding: 10px;
+ border: 1px solid #ddd;
+}
+#map-view, #details {
+ margin-top: 20px;
+}
+#map-buttons {
+ display: flex;
+ flex-wrap: wrap;
+ justify-content: space-between;
+ margin-bottom: 20px;
+}
+
+.map-btn {
+ background-color: black; 
+ border: none;
+ color: white; /* White text color */
+ padding: 6px 12px; /* Smaller padding to make the button smaller */
+ text-align: center; /* Centered text */
+ text-decoration: none;
+ display: inline-block;
+ font-size: 14px; /* Slightly smaller font size */
+ margin: 4px 2px;
+ cursor: pointer;
+ border-radius: 4px; /* Rounded corners */
+ transition-duration: 0.4s; /* Transition effect */
+ flex-grow: 1;
+ text-align: center;
+ margin: 5px;
+}
+
+.map-btn:hover {
+background-color: #0056b3;
+}
+
+#content-container {
+display: flex;
+justify-content: space-between;
+flex-wrap: wrap;
+}
+
+#map-container {
+flex: 1 1 50%;
+max-width: 50%;
+margin-right: 10px;
+}
+
+.table-responsive {
+flex: 1 1 50%;
+max-width: 50%;
+margin-left: 10px;
+}
+
+@media screen and (max-width: 800px) {
+#map-container,
+.table-responsive {
+flex: 1 0 100%;
+max-width: 100%;
+}
+}
+
+
+@media (max-width: 768px) {
+.map-btn {
+ flex-basis: 100%;
+ margin-bottom: 10px;
+}
+}
+
+@media (max-width: 768px) {
+ #main {
+     padding: 10px;
+ }
+ h1, h2 {
+     font-size: 24px;
+ }
+ form {
+     max-width: 100%;
+ }
+ .table-responsive {
+     padding: 10px;
+ }
+ td {
+     padding: 5px;
+ }
+}
+
+
